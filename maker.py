@@ -5,6 +5,7 @@ import tkinter as tk
 import shutil
 
 # A rimworld mod maker for creating mods with a simple interface.
+import tkinter as tk
 from tkinter import Tk, Label, Button, Entry, Text, filedialog, messagebox, ttk
 from tkinter import simpledialog, Frame, Scrollbar, VERTICAL, RIGHT, Y, LEFT, BOTH, END, BooleanVar, Checkbutton
 from tkinter import StringVar, DoubleVar, IntVar, Listbox, SINGLE
@@ -29,6 +30,7 @@ class ModMakerApp:
         self.created_buildings = []
         self.created_research = []
         self.created_recipes = []
+        self.created_cosmetics = []  # New list for cosmetics/apparel
         
         # Lists to store file paths for assets
         self.item_textures = {}  # defName: texture_path
@@ -37,6 +39,11 @@ class ModMakerApp:
         self.weapon_sounds = {}
         self.building_textures = {}
         self.building_sounds = {}
+        self.cosmetic_textures = {}  # New texture storage for cosmetics
+        self.cosmetic_sounds = {}    # New sound storage for cosmetics
+        
+        # Research unlocks storage
+        self.research_unlocks = {}  # research_defName: [list of unlocked items/weapons/buildings]
         
         # Current asset paths (temporary storage)
         self.item_texture_path = None
@@ -45,6 +52,8 @@ class ModMakerApp:
         self.weapon_sound_path = None
         self.building_texture_path = None
         self.building_sound_path = None
+        self.cosmetic_texture_path = None
+        self.cosmetic_sound_path = None
         
         self.setup_ui()
     
@@ -89,6 +98,9 @@ class ModMakerApp:
         
         # Buildings Tab
         self.create_buildings_tab()
+        
+        # Cosmetics Tab
+        self.create_cosmetics_tab()
         
         # Research Tab
         self.create_research_tab()
@@ -500,6 +512,141 @@ class ModMakerApp:
         
         Button(buildings_scrollable_frame, text="Remove Selected Building", command=self.remove_building, bg="#f44336", fg="white").pack(pady=10)
     
+    def create_cosmetics_tab(self):
+        # Cosmetics Tab
+        cosmetics_tab = Frame(self.notebook)
+        self.notebook.add(cosmetics_tab, text="Cosmetics")
+        
+        # Create scrollable frame
+        cosmetics_canvas = tk.Canvas(cosmetics_tab)
+        cosmetics_scrollbar = Scrollbar(cosmetics_tab, orient=VERTICAL, command=cosmetics_canvas.yview)
+        cosmetics_scrollable_frame = Frame(cosmetics_canvas)
+        
+        cosmetics_scrollable_frame.bind(
+            "<Configure>",
+            lambda e: cosmetics_canvas.configure(scrollregion=cosmetics_canvas.bbox("all"))
+        )
+        
+        cosmetics_canvas.create_window((0, 0), window=cosmetics_scrollable_frame, anchor="nw")
+        cosmetics_canvas.configure(yscrollcommand=cosmetics_scrollbar.set)
+        
+        cosmetics_canvas.pack(side=LEFT, fill=BOTH, expand=True, padx=20, pady=20)
+        cosmetics_scrollbar.pack(side=RIGHT, fill=Y, pady=20)
+        
+        Label(cosmetics_scrollable_frame, text="Create Cosmetics & Apparel", font=("Arial", 14, "bold")).pack(pady=(0, 20))
+        
+        # Cosmetic form
+        form_frame = Frame(cosmetics_scrollable_frame)
+        form_frame.pack(fill="x", pady=(0, 20))
+        
+        # DefName
+        Label(form_frame, text="Def Name:").grid(row=0, column=0, sticky="w", pady=5)
+        self.cosmetic_defname = Entry(form_frame, width=30)
+        self.cosmetic_defname.grid(row=0, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Label
+        Label(form_frame, text="Label:").grid(row=1, column=0, sticky="w", pady=5)
+        self.cosmetic_label = Entry(form_frame, width=30)
+        self.cosmetic_label.grid(row=1, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Description
+        Label(form_frame, text="Description:").grid(row=2, column=0, sticky="w", pady=5)
+        self.cosmetic_description = Entry(form_frame, width=30)
+        self.cosmetic_description.grid(row=2, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Apparel Type
+        Label(form_frame, text="Apparel Type:").grid(row=3, column=0, sticky="w", pady=5)
+        self.cosmetic_type = ttk.Combobox(form_frame, width=27, values=[
+            "Headwear", "Shirt", "Pants", "Jacket", "Belt", "Shoes", "Gloves", "Accessory", "Armor"
+        ])
+        self.cosmetic_type.set("Shirt")
+        self.cosmetic_type.grid(row=3, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Body Parts Covered
+        Label(form_frame, text="Body Parts (comma-separated):").grid(row=4, column=0, sticky="w", pady=5)
+        self.cosmetic_body_parts = Entry(form_frame, width=30)
+        self.cosmetic_body_parts.insert(0, "Torso")
+        self.cosmetic_body_parts.grid(row=4, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Layers
+        Label(form_frame, text="Apparel Layer:").grid(row=5, column=0, sticky="w", pady=5)
+        self.cosmetic_layer = ttk.Combobox(form_frame, width=27, values=[
+            "OnSkin", "Middle", "Shell", "Overhead", "EyeCover", "StrappedHead", "Belt"
+        ])
+        self.cosmetic_layer.set("Middle")
+        self.cosmetic_layer.grid(row=5, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Armor Rating (if armor)
+        Label(form_frame, text="Armor Rating (Sharp):").grid(row=6, column=0, sticky="w", pady=5)
+        self.cosmetic_armor_sharp = Entry(form_frame, width=30)
+        self.cosmetic_armor_sharp.insert(0, "0.0")
+        self.cosmetic_armor_sharp.grid(row=6, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        Label(form_frame, text="Armor Rating (Blunt):").grid(row=7, column=0, sticky="w", pady=5)
+        self.cosmetic_armor_blunt = Entry(form_frame, width=30)
+        self.cosmetic_armor_blunt.insert(0, "0.0")
+        self.cosmetic_armor_blunt.grid(row=7, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        Label(form_frame, text="Armor Rating (Heat):").grid(row=8, column=0, sticky="w", pady=5)
+        self.cosmetic_armor_heat = Entry(form_frame, width=30)
+        self.cosmetic_armor_heat.insert(0, "0.0")
+        self.cosmetic_armor_heat.grid(row=8, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Market Value
+        Label(form_frame, text="Market Value:").grid(row=9, column=0, sticky="w", pady=5)
+        self.cosmetic_market_value = Entry(form_frame, width=30)
+        self.cosmetic_market_value.insert(0, "50.0")
+        self.cosmetic_market_value.grid(row=9, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Mass
+        Label(form_frame, text="Mass:").grid(row=10, column=0, sticky="w", pady=5)
+        self.cosmetic_mass = Entry(form_frame, width=30)
+        self.cosmetic_mass.insert(0, "0.5")
+        self.cosmetic_mass.grid(row=10, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Work to Make
+        Label(form_frame, text="Work to Make:").grid(row=11, column=0, sticky="w", pady=5)
+        self.cosmetic_work = Entry(form_frame, width=30)
+        self.cosmetic_work.insert(0, "1000")
+        self.cosmetic_work.grid(row=11, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Texture selection
+        Label(form_frame, text="Texture (PNG):").grid(row=12, column=0, sticky="w", pady=5)
+        cosmetic_texture_frame = Frame(form_frame)
+        cosmetic_texture_frame.grid(row=12, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        self.cosmetic_texture_label = Label(cosmetic_texture_frame, text="No texture selected", bg="white", relief="sunken", anchor="w")
+        self.cosmetic_texture_label.pack(side=LEFT, fill="x", expand=True, padx=(0, 5))
+        Button(cosmetic_texture_frame, text="Browse", command=self.select_cosmetic_texture).pack(side=RIGHT)
+        
+        # Sound selection
+        Label(form_frame, text="Sound (WAV/OGG):").grid(row=13, column=0, sticky="w", pady=5)
+        cosmetic_sound_frame = Frame(form_frame)
+        cosmetic_sound_frame.grid(row=13, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        self.cosmetic_sound_label = Label(cosmetic_sound_frame, text="No sound selected", bg="white", relief="sunken", anchor="w")
+        self.cosmetic_sound_label.pack(side=LEFT, fill="x", expand=True, padx=(0, 5))
+        Button(cosmetic_sound_frame, text="Browse", command=self.select_cosmetic_sound).pack(side=RIGHT)
+        
+        form_frame.grid_columnconfigure(1, weight=1)
+        
+        Button(cosmetics_scrollable_frame, text="Add Cosmetic", command=self.add_cosmetic, bg="#2196F3", fg="white").pack(pady=10)
+        
+        # Cosmetics list
+        Label(cosmetics_scrollable_frame, text="Created Cosmetics:", font=("Arial", 12, "bold")).pack(anchor="w", pady=(20, 5))
+        
+        cosmetics_list_frame = Frame(cosmetics_scrollable_frame)
+        cosmetics_list_frame.pack(fill="both", expand=True)
+        
+        self.cosmetics_listbox = Listbox(cosmetics_list_frame, height=10)
+        cosmetics_list_scrollbar = Scrollbar(cosmetics_list_frame, orient=VERTICAL, command=self.cosmetics_listbox.yview)
+        self.cosmetics_listbox.configure(yscrollcommand=cosmetics_list_scrollbar.set)
+        
+        self.cosmetics_listbox.pack(side=LEFT, fill=BOTH, expand=True)
+        cosmetics_list_scrollbar.pack(side=RIGHT, fill=Y)
+        
+        Button(cosmetics_scrollable_frame, text="Remove Selected Cosmetic", command=self.remove_cosmetic, bg="#f44336", fg="white").pack(pady=10)
+    
     def create_research_tab(self):
         # Research Tab
         research_tab = Frame(self.notebook)
@@ -555,6 +702,61 @@ class ModMakerApp:
         ])
         self.research_tech_level.set("Industrial")
         self.research_tech_level.grid(row=4, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Research Unlocks Section
+        Label(form_frame, text="Unlocked Things:", font=("Arial", 10, "bold")).grid(row=5, column=0, columnspan=2, sticky="w", pady=(15, 5))
+        
+        # Items unlocked
+        Label(form_frame, text="Unlocked Items:").grid(row=6, column=0, sticky="w", pady=5)
+        unlocked_items_frame = Frame(form_frame)
+        unlocked_items_frame.grid(row=6, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        self.research_unlocked_items = Listbox(unlocked_items_frame, height=3, selectmode="multiple")
+        self.research_unlocked_items.pack(side=LEFT, fill="both", expand=True)
+        
+        items_buttons_frame = Frame(unlocked_items_frame)
+        items_buttons_frame.pack(side=RIGHT, fill="y", padx=(5, 0))
+        Button(items_buttons_frame, text="Add Item", command=self.add_item_to_research, width=8).pack(pady=1)
+        Button(items_buttons_frame, text="Remove", command=self.remove_item_from_research, width=8).pack(pady=1)
+        
+        # Weapons unlocked
+        Label(form_frame, text="Unlocked Weapons:").grid(row=7, column=0, sticky="w", pady=5)
+        unlocked_weapons_frame = Frame(form_frame)
+        unlocked_weapons_frame.grid(row=7, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        self.research_unlocked_weapons = Listbox(unlocked_weapons_frame, height=3, selectmode="multiple")
+        self.research_unlocked_weapons.pack(side=LEFT, fill="both", expand=True)
+        
+        weapons_buttons_frame = Frame(unlocked_weapons_frame)
+        weapons_buttons_frame.pack(side=RIGHT, fill="y", padx=(5, 0))
+        Button(weapons_buttons_frame, text="Add Weapon", command=self.add_weapon_to_research, width=8).pack(pady=1)
+        Button(weapons_buttons_frame, text="Remove", command=self.remove_weapon_from_research, width=8).pack(pady=1)
+        
+        # Buildings unlocked
+        Label(form_frame, text="Unlocked Buildings:").grid(row=8, column=0, sticky="w", pady=5)
+        unlocked_buildings_frame = Frame(form_frame)
+        unlocked_buildings_frame.grid(row=8, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        self.research_unlocked_buildings = Listbox(unlocked_buildings_frame, height=3, selectmode="multiple")
+        self.research_unlocked_buildings.pack(side=LEFT, fill="both", expand=True)
+        
+        buildings_buttons_frame = Frame(unlocked_buildings_frame)
+        buildings_buttons_frame.pack(side=RIGHT, fill="y", padx=(5, 0))
+        Button(buildings_buttons_frame, text="Add Building", command=self.add_building_to_research, width=8).pack(pady=1)
+        Button(buildings_buttons_frame, text="Remove", command=self.remove_building_from_research, width=8).pack(pady=1)
+        
+        # Cosmetics unlocked
+        Label(form_frame, text="Unlocked Cosmetics:").grid(row=9, column=0, sticky="w", pady=5)
+        unlocked_cosmetics_frame = Frame(form_frame)
+        unlocked_cosmetics_frame.grid(row=9, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        self.research_unlocked_cosmetics = Listbox(unlocked_cosmetics_frame, height=3, selectmode="multiple")
+        self.research_unlocked_cosmetics.pack(side=LEFT, fill="both", expand=True)
+        
+        cosmetics_buttons_frame = Frame(unlocked_cosmetics_frame)
+        cosmetics_buttons_frame.pack(side=RIGHT, fill="y", padx=(5, 0))
+        Button(cosmetics_buttons_frame, text="Add Cosmetic", command=self.add_cosmetic_to_research, width=8).pack(pady=1)
+        Button(cosmetics_buttons_frame, text="Remove", command=self.remove_cosmetic_from_research, width=8).pack(pady=1)
         
         form_frame.grid_columnconfigure(1, weight=1)
         
@@ -733,6 +935,209 @@ class ModMakerApp:
             self.building_sound_path = file_path
             self.building_sound_label.config(text=os.path.basename(file_path))
     
+    def select_cosmetic_texture(self):
+        file_path = filedialog.askopenfilename(
+            title="Select Cosmetic Texture",
+            filetypes=[("PNG files", "*.png"), ("All files", "*.*")]
+        )
+        if file_path:
+            self.cosmetic_texture_path = file_path
+            self.cosmetic_texture_label.config(text=os.path.basename(file_path))
+    
+    def select_cosmetic_sound(self):
+        file_path = filedialog.askopenfilename(
+            title="Select Cosmetic Sound",
+            filetypes=[("Audio files", "*.wav *.ogg *.mp3"), ("All files", "*.*")]
+        )
+        if file_path:
+            self.cosmetic_sound_path = file_path
+            self.cosmetic_sound_label.config(text=os.path.basename(file_path))
+    
+    # Research unlock management methods
+    def add_item_to_research(self):
+        """Add selected items to research unlocks"""
+        if not self.created_items:
+            messagebox.showwarning("Warning", "No items created yet! Create items first.")
+            return
+        
+        # Create selection dialog
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Select Items to Unlock")
+        dialog.geometry("400x300")
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        Label(dialog, text="Select items to unlock with this research:", font=("Arial", 10, "bold")).pack(pady=10)
+        
+        listbox_frame = Frame(dialog)
+        listbox_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        
+        items_listbox = Listbox(listbox_frame, selectmode="multiple")
+        scrollbar = Scrollbar(listbox_frame, orient="vertical", command=items_listbox.yview)
+        items_listbox.configure(yscrollcommand=scrollbar.set)
+        
+        # Populate with created items
+        for item in self.created_items:
+            items_listbox.insert(END, f"{item['defName']} - {item['label']}")
+        
+        items_listbox.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        def add_selected():
+            selections = items_listbox.curselection()
+            for idx in selections:
+                item_info = f"{self.created_items[idx]['defName']} - {self.created_items[idx]['label']}"
+                if item_info not in [self.research_unlocked_items.get(i) for i in range(self.research_unlocked_items.size())]:
+                    self.research_unlocked_items.insert(END, item_info)
+            dialog.destroy()
+        
+        Button(dialog, text="Add Selected", command=add_selected, bg="#4CAF50", fg="white").pack(pady=10)
+        Button(dialog, text="Cancel", command=dialog.destroy).pack()
+    
+    def remove_item_from_research(self):
+        """Remove selected items from research unlocks"""
+        selections = self.research_unlocked_items.curselection()
+        for idx in reversed(selections):
+            self.research_unlocked_items.delete(idx)
+    
+    def add_weapon_to_research(self):
+        """Add selected weapons to research unlocks"""
+        if not self.created_weapons:
+            messagebox.showwarning("Warning", "No weapons created yet! Create weapons first.")
+            return
+        
+        # Create selection dialog
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Select Weapons to Unlock")
+        dialog.geometry("400x300")
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        Label(dialog, text="Select weapons to unlock with this research:", font=("Arial", 10, "bold")).pack(pady=10)
+        
+        listbox_frame = Frame(dialog)
+        listbox_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        
+        weapons_listbox = Listbox(listbox_frame, selectmode="multiple")
+        scrollbar = Scrollbar(listbox_frame, orient="vertical", command=weapons_listbox.yview)
+        weapons_listbox.configure(yscrollcommand=scrollbar.set)
+        
+        # Populate with created weapons
+        for weapon in self.created_weapons:
+            weapons_listbox.insert(END, f"{weapon['defName']} - {weapon['label']}")
+        
+        weapons_listbox.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        def add_selected():
+            selections = weapons_listbox.curselection()
+            for idx in selections:
+                weapon_info = f"{self.created_weapons[idx]['defName']} - {self.created_weapons[idx]['label']}"
+                if weapon_info not in [self.research_unlocked_weapons.get(i) for i in range(self.research_unlocked_weapons.size())]:
+                    self.research_unlocked_weapons.insert(END, weapon_info)
+            dialog.destroy()
+        
+        Button(dialog, text="Add Selected", command=add_selected, bg="#4CAF50", fg="white").pack(pady=10)
+        Button(dialog, text="Cancel", command=dialog.destroy).pack()
+    
+    def remove_weapon_from_research(self):
+        """Remove selected weapons from research unlocks"""
+        selections = self.research_unlocked_weapons.curselection()
+        for idx in reversed(selections):
+            self.research_unlocked_weapons.delete(idx)
+    
+    def add_building_to_research(self):
+        """Add selected buildings to research unlocks"""
+        if not self.created_buildings:
+            messagebox.showwarning("Warning", "No buildings created yet! Create buildings first.")
+            return
+        
+        # Create selection dialog
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Select Buildings to Unlock")
+        dialog.geometry("400x300")
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        Label(dialog, text="Select buildings to unlock with this research:", font=("Arial", 10, "bold")).pack(pady=10)
+        
+        listbox_frame = Frame(dialog)
+        listbox_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        
+        buildings_listbox = Listbox(listbox_frame, selectmode="multiple")
+        scrollbar = Scrollbar(listbox_frame, orient="vertical", command=buildings_listbox.yview)
+        buildings_listbox.configure(yscrollcommand=scrollbar.set)
+        
+        # Populate with created buildings
+        for building in self.created_buildings:
+            buildings_listbox.insert(END, f"{building['defName']} - {building['label']}")
+        
+        buildings_listbox.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        def add_selected():
+            selections = buildings_listbox.curselection()
+            for idx in selections:
+                building_info = f"{self.created_buildings[idx]['defName']} - {self.created_buildings[idx]['label']}"
+                if building_info not in [self.research_unlocked_buildings.get(i) for i in range(self.research_unlocked_buildings.size())]:
+                    self.research_unlocked_buildings.insert(END, building_info)
+            dialog.destroy()
+        
+        Button(dialog, text="Add Selected", command=add_selected, bg="#4CAF50", fg="white").pack(pady=10)
+        Button(dialog, text="Cancel", command=dialog.destroy).pack()
+    
+    def remove_building_from_research(self):
+        """Remove selected buildings from research unlocks"""
+        selections = self.research_unlocked_buildings.curselection()
+        for idx in reversed(selections):
+            self.research_unlocked_buildings.delete(idx)
+    
+    def add_cosmetic_to_research(self):
+        """Add selected cosmetics to research unlocks"""
+        if not self.created_cosmetics:
+            messagebox.showwarning("Warning", "No cosmetics created yet! Create cosmetics first.")
+            return
+        
+        # Create selection dialog
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Select Cosmetics to Unlock")
+        dialog.geometry("400x300")
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        Label(dialog, text="Select cosmetics to unlock with this research:", font=("Arial", 10, "bold")).pack(pady=10)
+        
+        listbox_frame = Frame(dialog)
+        listbox_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        
+        cosmetics_listbox = Listbox(listbox_frame, selectmode="multiple")
+        scrollbar = Scrollbar(listbox_frame, orient="vertical", command=cosmetics_listbox.yview)
+        cosmetics_listbox.configure(yscrollcommand=scrollbar.set)
+        
+        # Populate with created cosmetics
+        for cosmetic in self.created_cosmetics:
+            cosmetics_listbox.insert(END, f"{cosmetic['defName']} - {cosmetic['label']}")
+        
+        cosmetics_listbox.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        def add_selected():
+            selections = cosmetics_listbox.curselection()
+            for idx in selections:
+                cosmetic_info = f"{self.created_cosmetics[idx]['defName']} - {self.created_cosmetics[idx]['label']}"
+                if cosmetic_info not in [self.research_unlocked_cosmetics.get(i) for i in range(self.research_unlocked_cosmetics.size())]:
+                    self.research_unlocked_cosmetics.insert(END, cosmetic_info)
+            dialog.destroy()
+        
+        Button(dialog, text="Add Selected", command=add_selected, bg="#4CAF50", fg="white").pack(pady=10)
+        Button(dialog, text="Cancel", command=dialog.destroy).pack()
+    
+    def remove_cosmetic_from_research(self):
+        """Remove selected cosmetics from research unlocks"""
+        selections = self.research_unlocked_cosmetics.curselection()
+        for idx in reversed(selections):
+            self.research_unlocked_cosmetics.delete(idx)
+    
     def clear_all(self):
         self.clear_form()
         self.created_items.clear()
@@ -740,6 +1145,7 @@ class ModMakerApp:
         self.created_buildings.clear()
         self.created_research.clear()
         self.created_recipes.clear()
+        self.created_cosmetics.clear()
         
         # Clear asset dictionaries
         self.item_textures.clear()
@@ -748,6 +1154,11 @@ class ModMakerApp:
         self.weapon_sounds.clear()
         self.building_textures.clear()
         self.building_sounds.clear()
+        self.cosmetic_textures.clear()
+        self.cosmetic_sounds.clear()
+        
+        # Clear research unlocks
+        self.research_unlocks.clear()
         
         # Clear listboxes
         if hasattr(self, 'items_listbox'):
@@ -760,6 +1171,8 @@ class ModMakerApp:
             self.research_listbox.delete(0, END)
         if hasattr(self, 'recipes_listbox'):
             self.recipes_listbox.delete(0, END)
+        if hasattr(self, 'cosmetics_listbox'):
+            self.cosmetics_listbox.delete(0, END)
     
     def clear_form(self):
         self.name_entry.delete(0, END)
@@ -917,6 +1330,68 @@ class ModMakerApp:
             self.created_buildings.pop(index)
             self.buildings_listbox.delete(index)
     
+    # Cosmetic management methods
+    def add_cosmetic(self):
+        cosmetic_data = {
+            'defName': self.cosmetic_defname.get().strip(),
+            'label': self.cosmetic_label.get().strip(),
+            'description': self.cosmetic_description.get().strip(),
+            'apparelType': self.cosmetic_type.get(),
+            'bodyParts': self.cosmetic_body_parts.get().strip(),
+            'layer': self.cosmetic_layer.get(),
+            'armorSharp': self.cosmetic_armor_sharp.get().strip(),
+            'armorBlunt': self.cosmetic_armor_blunt.get().strip(),
+            'armorHeat': self.cosmetic_armor_heat.get().strip(),
+            'marketValue': self.cosmetic_market_value.get().strip(),
+            'mass': self.cosmetic_mass.get().strip(),
+            'work': self.cosmetic_work.get().strip()
+        }
+        
+        if not cosmetic_data['defName'] or not cosmetic_data['label']:
+            messagebox.showerror("Error", "Def Name and Label are required!")
+            return
+        
+        self.created_cosmetics.append(cosmetic_data)
+        self.cosmetics_listbox.insert(END, f"{cosmetic_data['defName']} - {cosmetic_data['label']} ({cosmetic_data['apparelType']})")
+        
+        # Store asset paths if selected
+        if hasattr(self, 'cosmetic_texture_path') and self.cosmetic_texture_path:
+            self.cosmetic_textures[cosmetic_data['defName']] = self.cosmetic_texture_path
+        if hasattr(self, 'cosmetic_sound_path') and self.cosmetic_sound_path:
+            self.cosmetic_sounds[cosmetic_data['defName']] = self.cosmetic_sound_path
+        
+        # Clear form
+        self.cosmetic_defname.delete(0, END)
+        self.cosmetic_label.delete(0, END)
+        self.cosmetic_description.delete(0, END)
+        self.cosmetic_body_parts.delete(0, END)
+        self.cosmetic_body_parts.insert(0, "Torso")
+        self.cosmetic_armor_sharp.delete(0, END)
+        self.cosmetic_armor_sharp.insert(0, "0.0")
+        self.cosmetic_armor_blunt.delete(0, END)
+        self.cosmetic_armor_blunt.insert(0, "0.0")
+        self.cosmetic_armor_heat.delete(0, END)
+        self.cosmetic_armor_heat.insert(0, "0.0")
+        self.cosmetic_market_value.delete(0, END)
+        self.cosmetic_market_value.insert(0, "50.0")
+        self.cosmetic_mass.delete(0, END)
+        self.cosmetic_mass.insert(0, "0.5")
+        self.cosmetic_work.delete(0, END)
+        self.cosmetic_work.insert(0, "1000")
+        
+        # Clear asset selections
+        self.cosmetic_texture_path = None
+        self.cosmetic_sound_path = None
+        self.cosmetic_texture_label.config(text="No texture selected")
+        self.cosmetic_sound_label.config(text="No sound selected")
+    
+    def remove_cosmetic(self):
+        selection = self.cosmetics_listbox.curselection()
+        if selection:
+            index = selection[0]
+            self.created_cosmetics.pop(index)
+            self.cosmetics_listbox.delete(index)
+    
     # Research management methods
     def add_research(self):
         research_data = {
@@ -931,8 +1406,29 @@ class ModMakerApp:
             messagebox.showerror("Error", "Def Name and Label are required!")
             return
         
+        # Collect unlocked items, weapons, buildings, and cosmetics
+        unlocked_items = [self.research_unlocked_items.get(i).split(' - ')[0] for i in range(self.research_unlocked_items.size())]
+        unlocked_weapons = [self.research_unlocked_weapons.get(i).split(' - ')[0] for i in range(self.research_unlocked_weapons.size())]
+        unlocked_buildings = [self.research_unlocked_buildings.get(i).split(' - ')[0] for i in range(self.research_unlocked_buildings.size())]
+        unlocked_cosmetics = [self.research_unlocked_cosmetics.get(i).split(' - ')[0] for i in range(self.research_unlocked_cosmetics.size())]
+        
+        # Store unlocks
+        if unlocked_items or unlocked_weapons or unlocked_buildings or unlocked_cosmetics:
+            self.research_unlocks[research_data['defName']] = {
+                'items': unlocked_items,
+                'weapons': unlocked_weapons,
+                'buildings': unlocked_buildings,
+                'cosmetics': unlocked_cosmetics
+            }
+        
         self.created_research.append(research_data)
-        self.research_listbox.insert(END, f"{research_data['defName']} - {research_data['label']}")
+        
+        # Show research with unlock count
+        unlock_count = len(unlocked_items) + len(unlocked_weapons) + len(unlocked_buildings) + len(unlocked_cosmetics)
+        display_text = f"{research_data['defName']} - {research_data['label']}"
+        if unlock_count > 0:
+            display_text += f" (unlocks {unlock_count} things)"
+        self.research_listbox.insert(END, display_text)
         
         # Clear form
         self.research_defname.delete(0, END)
@@ -940,6 +1436,12 @@ class ModMakerApp:
         self.research_description.delete(0, END)
         self.research_cost.delete(0, END)
         self.research_cost.insert(0, "500")
+        
+        # Clear unlock lists
+        self.research_unlocked_items.delete(0, END)
+        self.research_unlocked_weapons.delete(0, END)
+        self.research_unlocked_buildings.delete(0, END)
+        self.research_unlocked_cosmetics.delete(0, END)
     
     def remove_research(self):
         selection = self.research_listbox.curselection()
@@ -1025,6 +1527,7 @@ class ModMakerApp:
                 self.generate_item_xmls(mod_path)
                 self.generate_weapon_xmls(mod_path)
                 self.generate_building_xmls(mod_path)
+                self.generate_cosmetic_xmls(mod_path)
                 self.generate_research_xmls(mod_path)
                 self.generate_recipe_xmls(mod_path)
             
@@ -1109,9 +1612,55 @@ class ModMakerApp:
                     file_ext = os.path.splitext(sound_path)[1]
                     dest_file = os.path.join(dest_dir, f"{def_name}{file_ext}")
                     shutil.copy2(sound_path, dest_file)
+            
+            # Copy cosmetic textures
+            for def_name, texture_path in self.cosmetic_textures.items():
+                if os.path.exists(texture_path):
+                    dest_dir = os.path.join(mod_path, "Textures", "Things", "Pawn", "Apparel")
+                    os.makedirs(dest_dir, exist_ok=True)
+                    dest_file = os.path.join(dest_dir, f"{def_name}.png")
+                    shutil.copy2(texture_path, dest_file)
+            
+            # Copy cosmetic sounds
+            for def_name, sound_path in self.cosmetic_sounds.items():
+                if os.path.exists(sound_path):
+                    dest_dir = os.path.join(mod_path, "Sounds", "Apparel")
+                    os.makedirs(dest_dir, exist_ok=True)
+                    file_ext = os.path.splitext(sound_path)[1]
+                    dest_file = os.path.join(dest_dir, f"{def_name}{file_ext}")
+                    shutil.copy2(sound_path, dest_file)
                     
         except Exception as e:
             print(f"Warning: Failed to copy some assets: {str(e)}")
+    
+    # Helper methods for research prerequisites
+    def find_research_for_item(self, item_defname):
+        """Find which research project unlocks this item"""
+        for research_defname, unlocks in self.research_unlocks.items():
+            if item_defname in unlocks.get('items', []):
+                return research_defname
+        return None
+    
+    def find_research_for_weapon(self, weapon_defname):
+        """Find which research project unlocks this weapon"""
+        for research_defname, unlocks in self.research_unlocks.items():
+            if weapon_defname in unlocks.get('weapons', []):
+                return research_defname
+        return None
+    
+    def find_research_for_building(self, building_defname):
+        """Find which research project unlocks this building"""
+        for research_defname, unlocks in self.research_unlocks.items():
+            if building_defname in unlocks.get('buildings', []):
+                return research_defname
+        return None
+    
+    def find_research_for_cosmetic(self, cosmetic_defname):
+        """Find which research project unlocks this cosmetic"""
+        for research_defname, unlocks in self.research_unlocks.items():
+            if cosmetic_defname in unlocks.get('cosmetics', []):
+                return research_defname
+        return None
     
     def generate_item_xmls(self, mod_path):
         if not self.created_items:
@@ -1157,6 +1706,13 @@ class ModMakerApp:
             thing_categories = ET.SubElement(thing_def, "thingCategories")
             category = ET.SubElement(thing_categories, "li")
             category.text = item['category']
+            
+            # Add research prerequisites if this item is unlocked by research
+            research_prereq = self.find_research_for_item(item['defName'])
+            if research_prereq:
+                research_prerequisites = ET.SubElement(thing_def, "researchPrerequisites")
+                prereq = ET.SubElement(research_prerequisites, "li")
+                prereq.text = research_prereq
         
         # Save XML
         self.save_xml_file(root, os.path.join(defs_path, "Items.xml"))
@@ -1202,6 +1758,13 @@ class ModMakerApp:
             if weapon['weaponType'] == "Melee":
                 melee_damage_base_amount = ET.SubElement(stat_bases, "MeleeWeapon_DamageMultiplier")
                 melee_damage_base_amount.text = "1.0"
+            
+            # Add research prerequisites if this weapon is unlocked by research
+            research_prereq = self.find_research_for_weapon(weapon['defName'])
+            if research_prereq:
+                research_prerequisites = ET.SubElement(thing_def, "researchPrerequisites")
+                prereq = ET.SubElement(research_prerequisites, "li")
+                prereq.text = research_prereq
         
         # Save XML
         self.save_xml_file(root, os.path.join(defs_path, "Weapons.xml"))
@@ -1246,9 +1809,87 @@ class ModMakerApp:
             max_hit_points.text = building['hitpoints']
             work_to_make = ET.SubElement(stat_bases, "WorkToBuild")
             work_to_make.text = building['work']
+            
+            # Add research prerequisites if this building is unlocked by research
+            research_prereq = self.find_research_for_building(building['defName'])
+            if research_prereq:
+                research_prerequisites = ET.SubElement(thing_def, "researchPrerequisites")
+                prereq = ET.SubElement(research_prerequisites, "li")
+                prereq.text = research_prereq
         
         # Save XML
         self.save_xml_file(root, os.path.join(defs_path, "Buildings.xml"))
+    
+    def generate_cosmetic_xmls(self, mod_path):
+        if not self.created_cosmetics:
+            return
+        
+        defs_path = os.path.join(mod_path, "Defs")
+        
+        # Create XML structure
+        root = ET.Element("Defs")
+        
+        for cosmetic in self.created_cosmetics:
+            thing_def = ET.SubElement(root, "ThingDef", ParentName="ApparelBase")
+            
+            # Basic info
+            def_name = ET.SubElement(thing_def, "defName")
+            def_name.text = cosmetic['defName']
+            
+            label = ET.SubElement(thing_def, "label")
+            label.text = cosmetic['label']
+            
+            description = ET.SubElement(thing_def, "description")
+            description.text = cosmetic['description']
+            
+            # Graphics
+            graphic_data = ET.SubElement(thing_def, "graphicData")
+            tex_path = ET.SubElement(graphic_data, "texPath")
+            tex_path.text = f"Things/Pawn/Apparel/{cosmetic['defName']}"
+            graphic_class = ET.SubElement(graphic_data, "graphicClass")
+            graphic_class.text = "Graphic_Single"
+            
+            # Stats
+            stat_bases = ET.SubElement(thing_def, "statBases")
+            market_value = ET.SubElement(stat_bases, "MarketValue")
+            market_value.text = cosmetic['marketValue']
+            mass = ET.SubElement(stat_bases, "Mass")
+            mass.text = cosmetic['mass']
+            work_to_make = ET.SubElement(stat_bases, "WorkToMake")
+            work_to_make.text = cosmetic['work']
+            
+            # Armor ratings if applicable
+            if float(cosmetic['armorSharp']) > 0 or float(cosmetic['armorBlunt']) > 0 or float(cosmetic['armorHeat']) > 0:
+                armor_rating_sharp = ET.SubElement(stat_bases, "ArmorRating_Sharp")
+                armor_rating_sharp.text = cosmetic['armorSharp']
+                armor_rating_blunt = ET.SubElement(stat_bases, "ArmorRating_Blunt")
+                armor_rating_blunt.text = cosmetic['armorBlunt']
+                armor_rating_heat = ET.SubElement(stat_bases, "ArmorRating_Heat")
+                armor_rating_heat.text = cosmetic['armorHeat']
+            
+            # Apparel properties
+            apparel = ET.SubElement(thing_def, "apparel")
+            
+            # Body part groups
+            body_part_groups = ET.SubElement(apparel, "bodyPartGroups")
+            for part in cosmetic['bodyParts'].split(','):
+                body_part = ET.SubElement(body_part_groups, "li")
+                body_part.text = part.strip()
+            
+            # Layer
+            layers = ET.SubElement(apparel, "layers")
+            layer = ET.SubElement(layers, "li")
+            layer.text = cosmetic['layer']
+            
+            # Add research prerequisites if this cosmetic is unlocked by research
+            research_prereq = self.find_research_for_cosmetic(cosmetic['defName'])
+            if research_prereq:
+                research_prerequisites = ET.SubElement(thing_def, "researchPrerequisites")
+                prereq = ET.SubElement(research_prerequisites, "li")
+                prereq.text = research_prereq
+        
+        # Save XML
+        self.save_xml_file(root, os.path.join(defs_path, "Cosmetics.xml"))
     
     def generate_research_xmls(self, mod_path):
         if not self.created_research:
@@ -1459,6 +2100,7 @@ Example references needed:
         os.makedirs(os.path.join(textures_path, "Things", "Item"), exist_ok=True)
         os.makedirs(os.path.join(textures_path, "Things", "Building"), exist_ok=True)
         os.makedirs(os.path.join(textures_path, "Things", "Pawn"), exist_ok=True)
+        os.makedirs(os.path.join(textures_path, "Things", "Pawn", "Apparel"), exist_ok=True)
         os.makedirs(os.path.join(textures_path, "UI"), exist_ok=True)
         
         # Create readme
