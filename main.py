@@ -57,6 +57,8 @@ class ModMakerApp:
         self.weapons = []
         self.buildings = []
         self.cosmetics = []
+        self.drugs = []
+        self.workbenches = []
         self.research = []
         self.recipes = []
         
@@ -69,6 +71,10 @@ class ModMakerApp:
         self.selected_building_sound = None
         self.selected_cosmetic_texture = None
         self.selected_cosmetic_sound = None
+        self.selected_drug_texture = None
+        self.selected_drug_sound = None
+        self.selected_workbench_texture = None
+        self.selected_workbench_sound = None
         self.selected_directory = None
         
         # Setup UI

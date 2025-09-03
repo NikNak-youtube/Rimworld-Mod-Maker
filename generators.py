@@ -509,6 +509,394 @@ class XMLGenerator:
         with open(cosmetics_path, 'w', encoding='utf-8') as f:
             f.write(reparsed.toprettyxml(indent="  "))
     
+    def generate_drugs_xml(self, defs_folder):
+        """Generate ThingDefs for drugs"""
+        if not self.app.drugs:
+            return
+        
+        root = ET.Element("Defs")
+        
+        for drug in self.app.drugs:
+            thing_def = ET.SubElement(root, "ThingDef", ParentName="DrugBase")
+            
+            # DefName
+            defname = ET.SubElement(thing_def, "defName")
+            defname.text = drug['defName']
+            
+            # Label
+            label = ET.SubElement(thing_def, "label")
+            label.text = drug['label']
+            
+            # Description
+            description = ET.SubElement(thing_def, "description")
+            description.text = drug['description']
+            
+            # Tech level
+            tech_level = ET.SubElement(thing_def, "techLevel")
+            tech_level.text = "Industrial"
+            
+            # Graphic data
+            graphic_data = ET.SubElement(thing_def, "graphicData")
+            texture_path = ET.SubElement(graphic_data, "texPath")
+            texture_path.text = f"Things/{drug['defName']}"
+            graphic_class = ET.SubElement(graphic_data, "graphicClass")
+            graphic_class.text = "Graphic_StackCount"
+            
+            # Social properness
+            social_properness = ET.SubElement(thing_def, "socialProperness")
+            social_properness.text = "Rude"
+            
+            # Use hit points
+            use_hit_points = ET.SubElement(thing_def, "useHitPoints")
+            use_hit_points.text = "true"
+            
+            # Stackable
+            stackable = ET.SubElement(thing_def, "stackLimit")
+            stackable.text = "75"
+            
+            # Stats
+            stat_bases = ET.SubElement(thing_def, "statBases")
+            
+            max_hit_points = ET.SubElement(stat_bases, "MaxHitPoints")
+            max_hit_points.text = "50"
+            
+            market_value = ET.SubElement(stat_bases, "MarketValue")
+            market_value.text = str(drug['marketValue'])
+            
+            mass = ET.SubElement(stat_bases, "Mass")
+            mass.text = str(drug['mass'])
+            
+            flammability = ET.SubElement(stat_bases, "Flammability")
+            flammability.text = "1.0"
+            
+            deterioration_rate = ET.SubElement(stat_bases, "DeteriorationRate")
+            deterioration_rate.text = "6.0"
+            
+            # Nutrition if it provides any
+            if float(drug['nutrition']) > 0:
+                nutrition = ET.SubElement(stat_bases, "Nutrition")
+                nutrition.text = str(drug['nutrition'])
+            
+            # Thing categories
+            thing_categories = ET.SubElement(thing_def, "thingCategories")
+            thing_category = ET.SubElement(thing_categories, "li")
+            thing_category.text = "Drugs"
+            
+            # Ingestible properties
+            ingestible = ET.SubElement(thing_def, "ingestible")
+            
+            food_type = ET.SubElement(ingestible, "foodType")
+            food_type.text = "Processed"
+            
+            joy_kind = ET.SubElement(ingestible, "joyKind")
+            joy_kind.text = "Chemical"
+            
+            joy_offset = ET.SubElement(ingestible, "joy")
+            joy_offset.text = str(drug['joy'])
+            
+            base_ingestion_ticks = ET.SubElement(ingestible, "baseIngestTicks")
+            base_ingestion_ticks.text = "240"
+            
+            chair_search_radius = ET.SubElement(ingestible, "chairSearchRadius")
+            chair_search_radius.text = "4"
+            
+            nurseable = ET.SubElement(ingestible, "nurseable")
+            nurseable.text = "true"
+            
+            # Drug category and addiction
+            drug_category = ET.SubElement(ingestible, "drugCategory")
+            drug_category.text = "Hard"
+            
+            addiction_chance = ET.SubElement(ingestible, "addictiveness")
+            addiction_chance.text = str(drug['addictionChance'])
+            
+            min_tolerance = ET.SubElement(ingestible, "minToleranceToAddict")
+            min_tolerance.text = "0.1"
+            
+            # Tolerance building
+            tolerance_chemical = ET.SubElement(ingestible, "toleranceChemical")
+            tolerance_chemical.text = drug['defName']
+            
+            # Outcome effects
+            outcome_doers = ET.SubElement(ingestible, "outcomeDoers")
+            
+            # Main effect
+            outcome = ET.SubElement(outcome_doers, "li", Class="IngestionOutcomeDoer_GiveHediff")
+            hediff_def = ET.SubElement(outcome, "hediffDef")
+            hediff_def.text = f"{drug['defName']}_Effect"
+            severity = ET.SubElement(outcome, "severity")
+            severity.text = "1.0"
+            tolerance_chemical_outcome = ET.SubElement(outcome, "toleranceChemical")
+            tolerance_chemical_outcome.text = drug['defName']
+            divide_by_body_size = ET.SubElement(outcome, "divideByBodySize")
+            divide_by_body_size.text = "true"
+            
+            # Tolerance effect
+            tolerance_outcome = ET.SubElement(outcome_doers, "li", Class="IngestionOutcomeDoer_OffsetTolerance")
+            tolerance_chemical_tolerance = ET.SubElement(tolerance_outcome, "toleranceChemical")
+            tolerance_chemical_tolerance.text = drug['defName']
+            tolerance_offset = ET.SubElement(tolerance_outcome, "offset")
+            tolerance_offset.text = str(drug['toleranceGain'])
+            
+            # Trading tags
+            trading_tags = ET.SubElement(thing_def, "tradeTags")
+            trade_tag = ET.SubElement(trading_tags, "li")
+            trade_tag.text = "ExoticMisc"
+        
+        # Generate the hediff (effect) def
+        for drug in self.app.drugs:
+            hediff_def = ET.SubElement(root, "HediffDef")
+            
+            # DefName
+            hediff_defname = ET.SubElement(hediff_def, "defName")
+            hediff_defname.text = f"{drug['defName']}_Effect"
+            
+            # Label
+            hediff_label = ET.SubElement(hediff_def, "label")
+            hediff_label.text = f"{drug['label']} effect"
+            
+            # Label noun
+            label_noun = ET.SubElement(hediff_def, "labelNoun")
+            label_noun.text = f"{drug['label']} effect"
+            
+            # Description
+            hediff_description = ET.SubElement(hediff_def, "description")
+            hediff_description.text = f"Active effects of {drug['label']}."
+            
+            # Hediff class
+            hediff_class = ET.SubElement(hediff_def, "hediffClass")
+            hediff_class.text = "HediffWithComps"
+            
+            # Default label color
+            default_label_color = ET.SubElement(hediff_def, "defaultLabelColor")
+            default_label_color.text = "(1,0,0.5)"
+            
+            # Scene overlay
+            scene_overlay = ET.SubElement(hediff_def, "scenarioCanAdd")
+            scene_overlay.text = "true"
+            
+            # Max severity
+            max_severity = ET.SubElement(hediff_def, "maxSeverity")
+            max_severity.text = "1.0"
+            
+            # Is bad
+            is_bad = ET.SubElement(hediff_def, "isBad")
+            is_bad.text = "false"
+            
+            # Comps
+            comps = ET.SubElement(hediff_def, "comps")
+            
+            # Severity per day comp
+            severity_comp = ET.SubElement(comps, "li", Class="HediffComp_SeverityPerDay")
+            severity_per_day = ET.SubElement(severity_comp, "severityPerDay")
+            severity_per_day.text = str(-24.0 / float(drug['duration']))  # Duration in hours to severity decay
+            
+            # Effects on different body parts
+            stages = ET.SubElement(hediff_def, "stages")
+            stage = ET.SubElement(stages, "li")
+            
+            # Stat offsets
+            if float(drug['painReduction']) != 0 or float(drug['moodOffset']) != 0 or float(drug['consciousnessOffset']) != 0:
+                stat_offsets = ET.SubElement(stage, "statOffsets")
+                
+                if float(drug['painReduction']) != 0:
+                    pain_sensitivity = ET.SubElement(stat_offsets, "PainShockThreshold")
+                    pain_sensitivity.text = str(drug['painReduction'])
+                
+                if float(drug['consciousnessOffset']) != 0:
+                    consciousness = ET.SubElement(stat_offsets, "Consciousness")
+                    consciousness.text = str(drug['consciousnessOffset'])
+            
+            # Mood offset
+            if float(drug['moodOffset']) != 0:
+                mood_offset = ET.SubElement(stage, "moodOffset")
+                mood_offset.text = str(drug['moodOffset'])
+        
+        # Write to file
+        rough_string = ET.tostring(root, 'unicode')
+        reparsed = minidom.parseString(rough_string)
+        
+        drugs_path = os.path.join(defs_folder, "Drugs.xml")
+        with open(drugs_path, 'w', encoding='utf-8') as f:
+            f.write(reparsed.toprettyxml(indent="  "))
+    
+    def generate_workbenches_xml(self, defs_folder):
+        """Generate ThingDefs for workbenches"""
+        if not self.app.workbenches:
+            return
+        
+        root = ET.Element("Defs")
+        
+        for workbench in self.app.workbenches:
+            thing_def = ET.SubElement(root, "ThingDef", ParentName="BenchBase")
+            
+            # DefName
+            defname = ET.SubElement(thing_def, "defName")
+            defname.text = workbench['defName']
+            
+            # Label
+            label = ET.SubElement(thing_def, "label")
+            label.text = workbench['label']
+            
+            # Description
+            description = ET.SubElement(thing_def, "description")
+            description.text = workbench['description']
+            
+            # Tech level
+            tech_level = ET.SubElement(thing_def, "techLevel")
+            tech_level.text = "Industrial"
+            
+            # Graphic data
+            graphic_data = ET.SubElement(thing_def, "graphicData")
+            texture_path = ET.SubElement(graphic_data, "texPath")
+            texture_path.text = f"Things/{workbench['defName']}"
+            graphic_class = ET.SubElement(graphic_data, "graphicClass")
+            graphic_class.text = "Graphic_Multi"
+            draw_size = ET.SubElement(graphic_data, "drawSize")
+            draw_size.text = f"({workbench['sizeX']},{workbench['sizeZ']})"
+            
+            # Cost list
+            cost_list = ET.SubElement(thing_def, "costList")
+            steel_cost = ET.SubElement(cost_list, "Steel")
+            steel_cost.text = str(workbench['steelCost'])
+            
+            if int(workbench['componentCost']) > 0:
+                component_cost = ET.SubElement(cost_list, "ComponentIndustrial")
+                component_cost.text = str(workbench['componentCost'])
+            
+            # Alt building
+            alt_building = ET.SubElement(thing_def, "altitudeLayer")
+            alt_building.text = "Building"
+            
+            # Pass ability
+            pass_ability = ET.SubElement(thing_def, "passability")
+            pass_ability.text = "PassThroughOnly"
+            
+            # Path cost
+            path_cost = ET.SubElement(thing_def, "pathCost")
+            path_cost.text = "50"
+            
+            # Block wind
+            block_wind = ET.SubElement(thing_def, "blockWind")
+            block_wind.text = "true"
+            
+            # Fillage
+            fillage = ET.SubElement(thing_def, "fillPercent")
+            fillage.text = "0.5"
+            
+            # Use hit points
+            use_hit_points = ET.SubElement(thing_def, "useHitPoints")
+            use_hit_points.text = "true"
+            
+            # Size
+            size = ET.SubElement(thing_def, "size")
+            size.text = f"({workbench['sizeX']},{workbench['sizeZ']})"
+            
+            # Stats
+            stat_bases = ET.SubElement(thing_def, "statBases")
+            
+            max_hit_points = ET.SubElement(stat_bases, "MaxHitPoints")
+            max_hit_points.text = "180"
+            
+            market_value = ET.SubElement(stat_bases, "MarketValue")
+            market_value.text = str(workbench['marketValue'])
+            
+            work_to_make = ET.SubElement(stat_bases, "WorkToBuild")
+            work_to_make.text = str(workbench['workToBuild'])
+            
+            flammability = ET.SubElement(stat_bases, "Flammability")
+            flammability.text = "1.0"
+            
+            work_table_work_speed = ET.SubElement(stat_bases, "WorkTableWorkSpeedFactor")
+            work_table_work_speed.text = str(workbench['workSpeedFactor'])
+            
+            work_table_efficiency = ET.SubElement(stat_bases, "WorkTableEfficiencyFactor")
+            work_table_efficiency.text = str(workbench['efficiencyFactor'])
+            
+            # Thing categories
+            thing_categories = ET.SubElement(thing_def, "thingCategories")
+            thing_category = ET.SubElement(thing_categories, "li")
+            thing_category.text = "BuildingsProduction"
+            
+            # Building properties
+            building = ET.SubElement(thing_def, "building")
+            is_inert = ET.SubElement(building, "isInert")
+            is_inert.text = "true"
+            
+            is_edifice = ET.SubElement(building, "isEdifice")
+            is_edifice.text = "true"
+            
+            # Surface type
+            surface_type = ET.SubElement(building, "surfaceType")
+            surface_type.text = "Item"
+            
+            # Can place blueprints over
+            can_place_over = ET.SubElement(building, "canPlaceOverImpassablePlant")
+            can_place_over.text = "false"
+            
+            # AI destory holdable
+            ai_destory = ET.SubElement(building, "ai_chillDestination")
+            ai_destory.text = "false"
+            
+            # Designator dropdown group key
+            designation_category = ET.SubElement(thing_def, "designationCategory")
+            designation_category.text = "Production"
+            
+            # Inspectorstring extra
+            has_interact_cell = ET.SubElement(thing_def, "hasInteractionCell")
+            has_interact_cell.text = "true"
+            
+            interaction_cell_offset = ET.SubElement(thing_def, "interactionCellOffset")
+            interaction_cell_offset.text = "(0,0,-1)"
+            
+            # Recipe users
+            recipes = ET.SubElement(thing_def, "recipes")
+            # Add some default recipes based on workbench type
+            recipe = ET.SubElement(recipes, "li")
+            recipe.text = "Make_Apparel_BasicShirt"
+            
+            # Skill requirements
+            if workbench['skillRequired'] != "None":
+                skill_requirements = ET.SubElement(thing_def, "skillRequirements")
+                skill = ET.SubElement(skill_requirements, "li")
+                skill_def = ET.SubElement(skill, "skill")
+                skill_def.text = workbench['skillRequired']
+                min_level = ET.SubElement(skill, "minLevel")
+                min_level.text = str(workbench['skillLevel'])
+            
+            # Power consumption if needed
+            if int(workbench['powerConsumption']) > 0:
+                comp_power = ET.SubElement(thing_def, "comps")
+                power_comp = ET.SubElement(comp_power, "li", Class="CompProperties_Power")
+                comp_class = ET.SubElement(power_comp, "compClass")
+                comp_class.text = "CompPowerTrader"
+                base_power = ET.SubElement(power_comp, "basePowerConsumption")
+                base_power.text = str(workbench['powerConsumption'])
+                short_circuit = ET.SubElement(power_comp, "shortCircuitInRain")
+                short_circuit.text = "true"
+            
+            # Research prerequisites
+            research_prerequisites = ET.SubElement(thing_def, "researchPrerequisites")
+            research_prereq = ET.SubElement(research_prerequisites, "li")
+            research_prereq.text = "BasicFabrication"
+            
+            # Construction skill to build
+            construction_skill = ET.SubElement(thing_def, "constructionSkillPrerequisite")
+            construction_skill.text = "4"
+            
+            # Trading tags
+            trading_tags = ET.SubElement(thing_def, "tradeTags")
+            trade_tag = ET.SubElement(trading_tags, "li")
+            trade_tag.text = "Building"
+        
+        # Write to file
+        rough_string = ET.tostring(root, 'unicode')
+        reparsed = minidom.parseString(rough_string)
+        
+        workbenches_path = os.path.join(defs_folder, "Workbenches.xml")
+        with open(workbenches_path, 'w', encoding='utf-8') as f:
+            f.write(reparsed.toprettyxml(indent="  "))
+    
     def generate_research_xml(self, defs_folder):
         """Generate ResearchProjectDefs for research"""
         if not self.app.research:
@@ -670,6 +1058,18 @@ class XMLGenerator:
                 if ' - ' in cosmetic_text:
                     cosmetic_defname = cosmetic_text.split(' - ')[0]
                     patches.append(self._create_research_patch(cosmetic_defname, research_defname))
+            
+            # Create patches for drugs
+            for drug_text in research['unlockedDrugs']:
+                if ' - ' in drug_text:
+                    drug_defname = drug_text.split(' - ')[0]
+                    patches.append(self._create_research_patch(drug_defname, research_defname))
+            
+            # Create patches for workbenches
+            for workbench_text in research['unlockedWorkbenches']:
+                if ' - ' in workbench_text:
+                    workbench_defname = workbench_text.split(' - ')[0]
+                    patches.append(self._create_research_patch(workbench_defname, research_defname))
         
         if patches:
             # Write patches to file

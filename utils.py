@@ -82,6 +82,12 @@ class FileUtils:
             if self.app.cosmetics:
                 self.app.xml_generator.generate_cosmetics_xml(defs_folder)
             
+            if self.app.drugs:
+                self.app.xml_generator.generate_drugs_xml(defs_folder)
+            
+            if self.app.workbenches:
+                self.app.xml_generator.generate_workbenches_xml(defs_folder)
+            
             if self.app.research:
                 self.app.xml_generator.generate_research_xml(defs_folder)
                 # Generate research unlock patches
@@ -177,6 +183,24 @@ class FileUtils:
                 if cosmetic.get('description'):
                     lang_content.append(f'  <{safe_name}.description>{cosmetic["description"]}</{safe_name}.description>')
         
+        # Add language keys for drugs
+        if self.app.drugs:
+            lang_content.append('')
+            lang_content.append('  <!-- Drugs -->')
+            for drug in self.app.drugs:
+                safe_name = drug['defName'].replace(' ', '_')
+                if drug.get('description'):
+                    lang_content.append(f'  <{safe_name}.description>{drug["description"]}</{safe_name}.description>')
+        
+        # Add language keys for workbenches
+        if self.app.workbenches:
+            lang_content.append('')
+            lang_content.append('  <!-- Workbenches -->')
+            for workbench in self.app.workbenches:
+                safe_name = workbench['defName'].replace(' ', '_')
+                if workbench.get('description'):
+                    lang_content.append(f'  <{safe_name}.description>{workbench["description"]}</{safe_name}.description>')
+        
         # Add language keys for research
         if self.app.research:
             lang_content.append('')
@@ -200,7 +224,8 @@ class FileUtils:
         from tkinter import filedialog
         
         if not any([self.app.items, self.app.weapons, self.app.buildings, 
-                   self.app.cosmetics, self.app.research, self.app.recipes]):
+                   self.app.cosmetics, self.app.drugs, self.app.workbenches, 
+                   self.app.research, self.app.recipes]):
             messagebox.showwarning("Warning", "No mod content to export!")
             return
         
@@ -216,6 +241,8 @@ class FileUtils:
             'weapons': self.app.weapons,
             'buildings': self.app.buildings,
             'cosmetics': self.app.cosmetics,
+            'drugs': self.app.drugs,
+            'workbenches': self.app.workbenches,
             'research': self.app.research,
             'recipes': self.app.recipes,
             'settings': {
@@ -285,6 +312,8 @@ class FileUtils:
             self.app.weapons = import_data.get('weapons', [])
             self.app.buildings = import_data.get('buildings', [])
             self.app.cosmetics = import_data.get('cosmetics', [])
+            self.app.drugs = import_data.get('drugs', [])
+            self.app.workbenches = import_data.get('workbenches', [])
             self.app.research = import_data.get('research', [])
             self.app.recipes = import_data.get('recipes', [])
             
@@ -313,6 +342,8 @@ class FileUtils:
         self.app.weapons.clear()
         self.app.buildings.clear()
         self.app.cosmetics.clear()
+        self.app.drugs.clear()
+        self.app.workbenches.clear()
         self.app.research.clear()
         self.app.recipes.clear()
         
@@ -341,6 +372,16 @@ class FileUtils:
         for cosmetic in self.app.cosmetics:
             self.app.cosmetics_listbox.insert('end', f"{cosmetic['defName']} - {cosmetic['label']}")
         
+        # Clear and populate drugs listbox
+        self.app.drugs_listbox.delete(0, 'end')
+        for drug in self.app.drugs:
+            self.app.drugs_listbox.insert('end', f"{drug['defName']} - {drug['label']}")
+        
+        # Clear and populate workbenches listbox
+        self.app.workbenches_listbox.delete(0, 'end')
+        for workbench in self.app.workbenches:
+            self.app.workbenches_listbox.insert('end', f"{workbench['defName']} - {workbench['label']}")
+        
         # Clear and populate research listbox
         self.app.research_listbox.delete(0, 'end')
         for research in self.app.research:
@@ -356,6 +397,8 @@ class FileUtils:
         self.app.research_unlocked_weapons.delete(0, 'end')
         self.app.research_unlocked_buildings.delete(0, 'end')
         self.app.research_unlocked_cosmetics.delete(0, 'end')
+        self.app.research_unlocked_drugs.delete(0, 'end')
+        self.app.research_unlocked_workbenches.delete(0, 'end')
 
 
 class ValidationUtils:

@@ -29,6 +29,12 @@ class TabCreator:
         # Cosmetics Tab
         self.create_cosmetics_tab()
         
+        # Drugs Tab
+        self.create_drugs_tab()
+        
+        # Workbenches Tab
+        self.create_workbenches_tab()
+        
         # Research Tab
         self.create_research_tab()
         
@@ -566,6 +572,287 @@ class TabCreator:
         
         Button(cosmetics_scrollable_frame, text="Remove Selected Cosmetic", command=self.app.content_manager.remove_cosmetic, bg="#f44336", fg="white").pack(pady=10)
     
+    def create_drugs_tab(self):
+        # Drugs Tab
+        drugs_tab = Frame(self.app.notebook)
+        self.app.notebook.add(drugs_tab, text="Drugs")
+        
+        # Create scrollable frame
+        drugs_canvas = tk.Canvas(drugs_tab)
+        drugs_scrollbar = Scrollbar(drugs_tab, orient=VERTICAL, command=drugs_canvas.yview)
+        drugs_scrollable_frame = Frame(drugs_canvas)
+        
+        drugs_scrollable_frame.bind(
+            "<Configure>",
+            lambda e: drugs_canvas.configure(scrollregion=drugs_canvas.bbox("all"))
+        )
+        
+        drugs_canvas.create_window((0, 0), window=drugs_scrollable_frame, anchor="nw")
+        drugs_canvas.configure(yscrollcommand=drugs_scrollbar.set)
+        
+        drugs_canvas.pack(side=LEFT, fill=BOTH, expand=True, padx=20, pady=20)
+        drugs_scrollbar.pack(side=RIGHT, fill=Y, pady=20)
+        
+        Label(drugs_scrollable_frame, text="Create Drugs", font=("Arial", 14, "bold")).pack(pady=(0, 20))
+        
+        # Drug form
+        form_frame = Frame(drugs_scrollable_frame)
+        form_frame.pack(fill="x", pady=(0, 20))
+        
+        # DefName
+        Label(form_frame, text="Def Name:").grid(row=0, column=0, sticky="w", pady=5)
+        self.app.drug_defname = Entry(form_frame, width=30)
+        self.app.drug_defname.grid(row=0, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Label
+        Label(form_frame, text="Label:").grid(row=1, column=0, sticky="w", pady=5)
+        self.app.drug_label = Entry(form_frame, width=30)
+        self.app.drug_label.grid(row=1, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Description
+        Label(form_frame, text="Description:").grid(row=2, column=0, sticky="w", pady=5)
+        self.app.drug_description = Entry(form_frame, width=30)
+        self.app.drug_description.grid(row=2, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Drug Category
+        Label(form_frame, text="Drug Category:").grid(row=3, column=0, sticky="w", pady=5)
+        self.app.drug_category = ttk.Combobox(form_frame, width=27, values=[
+            "Medical", "Social", "Combat", "Production", "Psychic"
+        ])
+        self.app.drug_category.set("Medical")
+        self.app.drug_category.grid(row=3, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Addiction Chance
+        Label(form_frame, text="Addiction Chance (%):").grid(row=4, column=0, sticky="w", pady=5)
+        self.app.drug_addiction_chance = Entry(form_frame, width=30)
+        self.app.drug_addiction_chance.insert(0, "0.0")
+        self.app.drug_addiction_chance.grid(row=4, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Tolerance Gain
+        Label(form_frame, text="Tolerance Gain:").grid(row=5, column=0, sticky="w", pady=5)
+        self.app.drug_tolerance_gain = Entry(form_frame, width=30)
+        self.app.drug_tolerance_gain.insert(0, "0.0")
+        self.app.drug_tolerance_gain.grid(row=5, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # High Duration (hours)
+        Label(form_frame, text="High Duration (hours):").grid(row=6, column=0, sticky="w", pady=5)
+        self.app.drug_high_duration = Entry(form_frame, width=30)
+        self.app.drug_high_duration.insert(0, "8.0")
+        self.app.drug_high_duration.grid(row=6, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Market Value
+        Label(form_frame, text="Market Value:").grid(row=7, column=0, sticky="w", pady=5)
+        self.app.drug_market_value = Entry(form_frame, width=30)
+        self.app.drug_market_value.insert(0, "25.0")
+        self.app.drug_market_value.grid(row=7, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Mass
+        Label(form_frame, text="Mass:").grid(row=8, column=0, sticky="w", pady=5)
+        self.app.drug_mass = Entry(form_frame, width=30)
+        self.app.drug_mass.insert(0, "0.05")
+        self.app.drug_mass.grid(row=8, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Stack Limit
+        Label(form_frame, text="Stack Limit:").grid(row=9, column=0, sticky="w", pady=5)
+        self.app.drug_stack_limit = Entry(form_frame, width=30)
+        self.app.drug_stack_limit.insert(0, "150")
+        self.app.drug_stack_limit.grid(row=9, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Effects Section
+        Label(form_frame, text="Effects:", font=("Arial", 10, "bold")).grid(row=10, column=0, columnspan=2, sticky="w", pady=(15, 5))
+        
+        # Mood Effect
+        Label(form_frame, text="Mood Effect:").grid(row=11, column=0, sticky="w", pady=5)
+        self.app.drug_mood_effect = Entry(form_frame, width=30)
+        self.app.drug_mood_effect.insert(0, "0")
+        self.app.drug_mood_effect.grid(row=11, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Pain Effect
+        Label(form_frame, text="Pain Effect:").grid(row=12, column=0, sticky="w", pady=5)
+        self.app.drug_pain_effect = Entry(form_frame, width=30)
+        self.app.drug_pain_effect.insert(0, "0.0")
+        self.app.drug_pain_effect.grid(row=12, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Consciousness Effect
+        Label(form_frame, text="Consciousness Effect:").grid(row=13, column=0, sticky="w", pady=5)
+        self.app.drug_consciousness_effect = Entry(form_frame, width=30)
+        self.app.drug_consciousness_effect.insert(0, "0.0")
+        self.app.drug_consciousness_effect.grid(row=13, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Moving Effect
+        Label(form_frame, text="Moving Effect:").grid(row=14, column=0, sticky="w", pady=5)
+        self.app.drug_moving_effect = Entry(form_frame, width=30)
+        self.app.drug_moving_effect.insert(0, "0.0")
+        self.app.drug_moving_effect.grid(row=14, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Texture selection
+        Label(form_frame, text="Texture (PNG):").grid(row=15, column=0, sticky="w", pady=5)
+        drug_texture_frame = Frame(form_frame)
+        drug_texture_frame.grid(row=15, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        self.app.drug_texture_label = Label(drug_texture_frame, text="No texture selected", bg="white", relief="sunken", anchor="w")
+        self.app.drug_texture_label.pack(side=LEFT, fill="x", expand=True, padx=(0, 5))
+        Button(drug_texture_frame, text="Browse", command=self.app.asset_manager.select_drug_texture).pack(side=RIGHT)
+        
+        # Sound selection
+        Label(form_frame, text="Sound (WAV/OGG):").grid(row=16, column=0, sticky="w", pady=5)
+        drug_sound_frame = Frame(form_frame)
+        drug_sound_frame.grid(row=16, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        self.app.drug_sound_label = Label(drug_sound_frame, text="No sound selected", bg="white", relief="sunken", anchor="w")
+        self.app.drug_sound_label.pack(side=LEFT, fill="x", expand=True, padx=(0, 5))
+        Button(drug_sound_frame, text="Browse", command=self.app.asset_manager.select_drug_sound).pack(side=RIGHT)
+        
+        form_frame.grid_columnconfigure(1, weight=1)
+        
+        Button(drugs_scrollable_frame, text="Add Drug", command=self.app.content_manager.add_drug, bg="#2196F3", fg="white").pack(pady=10)
+        
+        # Drugs list
+        Label(drugs_scrollable_frame, text="Created Drugs:", font=("Arial", 12, "bold")).pack(anchor="w", pady=(20, 5))
+        
+        drugs_list_frame = Frame(drugs_scrollable_frame)
+        drugs_list_frame.pack(fill="both", expand=True)
+        
+        self.app.drugs_listbox = Listbox(drugs_list_frame, height=10)
+        drugs_list_scrollbar = Scrollbar(drugs_list_frame, orient=VERTICAL, command=self.app.drugs_listbox.yview)
+        self.app.drugs_listbox.configure(yscrollcommand=drugs_list_scrollbar.set)
+        
+        self.app.drugs_listbox.pack(side=LEFT, fill=BOTH, expand=True)
+        drugs_list_scrollbar.pack(side=RIGHT, fill=Y)
+        
+        Button(drugs_scrollable_frame, text="Remove Selected Drug", command=self.app.content_manager.remove_drug, bg="#f44336", fg="white").pack(pady=10)
+    
+    def create_workbenches_tab(self):
+        # Workbenches Tab
+        workbenches_tab = Frame(self.app.notebook)
+        self.app.notebook.add(workbenches_tab, text="Workbenches")
+        
+        # Create scrollable frame
+        workbenches_canvas = tk.Canvas(workbenches_tab)
+        workbenches_scrollbar = Scrollbar(workbenches_tab, orient=VERTICAL, command=workbenches_canvas.yview)
+        workbenches_scrollable_frame = Frame(workbenches_canvas)
+        
+        workbenches_scrollable_frame.bind(
+            "<Configure>",
+            lambda e: workbenches_canvas.configure(scrollregion=workbenches_canvas.bbox("all"))
+        )
+        
+        workbenches_canvas.create_window((0, 0), window=workbenches_scrollable_frame, anchor="nw")
+        workbenches_canvas.configure(yscrollcommand=workbenches_scrollbar.set)
+        
+        workbenches_canvas.pack(side=LEFT, fill=BOTH, expand=True, padx=20, pady=20)
+        workbenches_scrollbar.pack(side=RIGHT, fill=Y, pady=20)
+        
+        Label(workbenches_scrollable_frame, text="Create Workbenches", font=("Arial", 14, "bold")).pack(pady=(0, 20))
+        
+        # Workbench form
+        form_frame = Frame(workbenches_scrollable_frame)
+        form_frame.pack(fill="x", pady=(0, 20))
+        
+        # DefName
+        Label(form_frame, text="Def Name:").grid(row=0, column=0, sticky="w", pady=5)
+        self.app.workbench_defname = Entry(form_frame, width=30)
+        self.app.workbench_defname.grid(row=0, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Label
+        Label(form_frame, text="Label:").grid(row=1, column=0, sticky="w", pady=5)
+        self.app.workbench_label = Entry(form_frame, width=30)
+        self.app.workbench_label.grid(row=1, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Description
+        Label(form_frame, text="Description:").grid(row=2, column=0, sticky="w", pady=5)
+        self.app.workbench_description = Entry(form_frame, width=30)
+        self.app.workbench_description.grid(row=2, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Workbench Type
+        Label(form_frame, text="Workbench Type:").grid(row=3, column=0, sticky="w", pady=5)
+        self.app.workbench_type = ttk.Combobox(form_frame, width=27, values=[
+            "Crafting", "Production", "Research", "Cooking", "Smithing", "Tailoring", "Art"
+        ])
+        self.app.workbench_type.set("Crafting")
+        self.app.workbench_type.grid(row=3, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Size
+        Label(form_frame, text="Size (e.g., 3,1):").grid(row=4, column=0, sticky="w", pady=5)
+        self.app.workbench_size = Entry(form_frame, width=30)
+        self.app.workbench_size.insert(0, "3,1")
+        self.app.workbench_size.grid(row=4, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Hit Points
+        Label(form_frame, text="Hit Points:").grid(row=5, column=0, sticky="w", pady=5)
+        self.app.workbench_hitpoints = Entry(form_frame, width=30)
+        self.app.workbench_hitpoints.insert(0, "180")
+        self.app.workbench_hitpoints.grid(row=5, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Work to Make
+        Label(form_frame, text="Work to Make:").grid(row=6, column=0, sticky="w", pady=5)
+        self.app.workbench_work = Entry(form_frame, width=30)
+        self.app.workbench_work.insert(0, "3000")
+        self.app.workbench_work.grid(row=6, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Work Speed Factor
+        Label(form_frame, text="Work Speed Factor:").grid(row=7, column=0, sticky="w", pady=5)
+        self.app.workbench_speed_factor = Entry(form_frame, width=30)
+        self.app.workbench_speed_factor.insert(0, "1.0")
+        self.app.workbench_speed_factor.grid(row=7, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Power Consumption
+        Label(form_frame, text="Power Consumption:").grid(row=8, column=0, sticky="w", pady=5)
+        self.app.workbench_power = Entry(form_frame, width=30)
+        self.app.workbench_power.insert(0, "0")
+        self.app.workbench_power.grid(row=8, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Skill Requirements
+        Label(form_frame, text="Required Skill:").grid(row=9, column=0, sticky="w", pady=5)
+        self.app.workbench_skill = ttk.Combobox(form_frame, width=27, values=[
+            "None", "Crafting", "Construction", "Cooking", "Artistic", "Intellectual", "Medicine"
+        ])
+        self.app.workbench_skill.set("Crafting")
+        self.app.workbench_skill.grid(row=9, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Skill Level
+        Label(form_frame, text="Required Skill Level:").grid(row=10, column=0, sticky="w", pady=5)
+        self.app.workbench_skill_level = Entry(form_frame, width=30)
+        self.app.workbench_skill_level.insert(0, "0")
+        self.app.workbench_skill_level.grid(row=10, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        # Texture selection
+        Label(form_frame, text="Texture (PNG):").grid(row=11, column=0, sticky="w", pady=5)
+        workbench_texture_frame = Frame(form_frame)
+        workbench_texture_frame.grid(row=11, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        self.app.workbench_texture_label = Label(workbench_texture_frame, text="No texture selected", bg="white", relief="sunken", anchor="w")
+        self.app.workbench_texture_label.pack(side=LEFT, fill="x", expand=True, padx=(0, 5))
+        Button(workbench_texture_frame, text="Browse", command=self.app.asset_manager.select_workbench_texture).pack(side=RIGHT)
+        
+        # Sound selection
+        Label(form_frame, text="Sound (WAV/OGG):").grid(row=12, column=0, sticky="w", pady=5)
+        workbench_sound_frame = Frame(form_frame)
+        workbench_sound_frame.grid(row=12, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        self.app.workbench_sound_label = Label(workbench_sound_frame, text="No sound selected", bg="white", relief="sunken", anchor="w")
+        self.app.workbench_sound_label.pack(side=LEFT, fill="x", expand=True, padx=(0, 5))
+        Button(workbench_sound_frame, text="Browse", command=self.app.asset_manager.select_workbench_sound).pack(side=RIGHT)
+        
+        form_frame.grid_columnconfigure(1, weight=1)
+        
+        Button(workbenches_scrollable_frame, text="Add Workbench", command=self.app.content_manager.add_workbench, bg="#2196F3", fg="white").pack(pady=10)
+        
+        # Workbenches list
+        Label(workbenches_scrollable_frame, text="Created Workbenches:", font=("Arial", 12, "bold")).pack(anchor="w", pady=(20, 5))
+        
+        workbenches_list_frame = Frame(workbenches_scrollable_frame)
+        workbenches_list_frame.pack(fill="both", expand=True)
+        
+        self.app.workbenches_listbox = Listbox(workbenches_list_frame, height=10)
+        workbenches_list_scrollbar = Scrollbar(workbenches_list_frame, orient=VERTICAL, command=self.app.workbenches_listbox.yview)
+        self.app.workbenches_listbox.configure(yscrollcommand=workbenches_list_scrollbar.set)
+        
+        self.app.workbenches_listbox.pack(side=LEFT, fill=BOTH, expand=True)
+        workbenches_list_scrollbar.pack(side=RIGHT, fill=Y)
+        
+        Button(workbenches_scrollable_frame, text="Remove Selected Workbench", command=self.app.content_manager.remove_workbench, bg="#f44336", fg="white").pack(pady=10)
+    
     def create_research_tab(self):
         # Research Tab
         research_tab = Frame(self.app.notebook)
@@ -676,6 +963,32 @@ class TabCreator:
         cosmetics_buttons_frame.pack(side=RIGHT, fill="y", padx=(5, 0))
         Button(cosmetics_buttons_frame, text="Add Cosmetic", command=self.app.content_manager.add_cosmetic_to_research, width=8).pack(pady=1)
         Button(cosmetics_buttons_frame, text="Remove", command=self.app.content_manager.remove_cosmetic_from_research, width=8).pack(pady=1)
+        
+        # Drugs unlocked
+        Label(form_frame, text="Unlocked Drugs:").grid(row=10, column=0, sticky="w", pady=5)
+        unlocked_drugs_frame = Frame(form_frame)
+        unlocked_drugs_frame.grid(row=10, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        self.app.research_unlocked_drugs = Listbox(unlocked_drugs_frame, height=3, selectmode="multiple")
+        self.app.research_unlocked_drugs.pack(side=LEFT, fill="both", expand=True)
+        
+        drugs_buttons_frame = Frame(unlocked_drugs_frame)
+        drugs_buttons_frame.pack(side=RIGHT, fill="y", padx=(5, 0))
+        Button(drugs_buttons_frame, text="Add Drug", command=self.app.content_manager.add_drug_to_research, width=8).pack(pady=1)
+        Button(drugs_buttons_frame, text="Remove", command=self.app.content_manager.remove_drug_from_research, width=8).pack(pady=1)
+        
+        # Workbenches unlocked
+        Label(form_frame, text="Unlocked Workbenches:").grid(row=11, column=0, sticky="w", pady=5)
+        unlocked_workbenches_frame = Frame(form_frame)
+        unlocked_workbenches_frame.grid(row=11, column=1, sticky="ew", pady=5, padx=(10, 0))
+        
+        self.app.research_unlocked_workbenches = Listbox(unlocked_workbenches_frame, height=3, selectmode="multiple")
+        self.app.research_unlocked_workbenches.pack(side=LEFT, fill="both", expand=True)
+        
+        workbenches_buttons_frame = Frame(unlocked_workbenches_frame)
+        workbenches_buttons_frame.pack(side=RIGHT, fill="y", padx=(5, 0))
+        Button(workbenches_buttons_frame, text="Add Workbench", command=self.app.content_manager.add_workbench_to_research, width=8).pack(pady=1)
+        Button(workbenches_buttons_frame, text="Remove", command=self.app.content_manager.remove_workbench_from_research, width=8).pack(pady=1)
         
         form_frame.grid_columnconfigure(1, weight=1)
         

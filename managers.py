@@ -329,6 +329,197 @@ class ContentManager:
             self.app.cosmetics_listbox.delete(index)
             messagebox.showinfo("Success", "Cosmetic removed successfully!")
     
+    def add_drug(self):
+        """Add a new drug to the mod"""
+        defname = self.app.drug_defname.get().strip()
+        label = self.app.drug_label.get().strip()
+        description = self.app.drug_description.get().strip()
+        
+        if not defname or not label:
+            messagebox.showerror("Error", "DefName and Label are required!")
+            return
+        
+        # Check for duplicate defnames
+        for drug in self.app.drugs:
+            if drug['defName'] == defname:
+                messagebox.showerror("Error", f"Drug with DefName '{defname}' already exists!")
+                return
+        
+        try:
+            addiction_chance = float(self.app.drug_addiction_chance.get() or "0.0")
+            tolerance_gain = float(self.app.drug_tolerance_gain.get() or "0.0")
+            high_duration = float(self.app.drug_high_duration.get() or "8.0")
+            market_value = float(self.app.drug_market_value.get() or "25.0")
+            mass = float(self.app.drug_mass.get() or "0.05")
+            stack_limit = int(self.app.drug_stack_limit.get() or "150")
+            mood_effect = int(self.app.drug_mood_effect.get() or "0")
+            pain_effect = float(self.app.drug_pain_effect.get() or "0.0")
+            consciousness_effect = float(self.app.drug_consciousness_effect.get() or "0.0")
+            moving_effect = float(self.app.drug_moving_effect.get() or "0.0")
+        except ValueError:
+            messagebox.showerror("Error", "Please enter valid numbers for drug properties!")
+            return
+        
+        category = self.app.drug_category.get()
+        
+        drug = {
+            'defName': defname,
+            'label': label,
+            'description': description,
+            'category': category,
+            'addictionChance': addiction_chance,
+            'toleranceGain': tolerance_gain,
+            'highDuration': high_duration,
+            'marketValue': market_value,
+            'mass': mass,
+            'stackLimit': stack_limit,
+            'moodEffect': mood_effect,
+            'painEffect': pain_effect,
+            'consciousnessEffect': consciousness_effect,
+            'movingEffect': moving_effect,
+            'texture': getattr(self.app, 'selected_drug_texture', None),
+            'sound': getattr(self.app, 'selected_drug_sound', None)
+        }
+        
+        self.app.drugs.append(drug)
+        self.app.drugs_listbox.insert(END, f"{defname} - {label}")
+        
+        # Clear form
+        self.app.drug_defname.delete(0, END)
+        self.app.drug_label.delete(0, END)
+        self.app.drug_description.delete(0, END)
+        self.app.drug_category.set("Medical")
+        self.app.drug_addiction_chance.delete(0, END)
+        self.app.drug_addiction_chance.insert(0, "0.0")
+        self.app.drug_tolerance_gain.delete(0, END)
+        self.app.drug_tolerance_gain.insert(0, "0.0")
+        self.app.drug_high_duration.delete(0, END)
+        self.app.drug_high_duration.insert(0, "8.0")
+        self.app.drug_market_value.delete(0, END)
+        self.app.drug_market_value.insert(0, "25.0")
+        self.app.drug_mass.delete(0, END)
+        self.app.drug_mass.insert(0, "0.05")
+        self.app.drug_stack_limit.delete(0, END)
+        self.app.drug_stack_limit.insert(0, "150")
+        self.app.drug_mood_effect.delete(0, END)
+        self.app.drug_mood_effect.insert(0, "0")
+        self.app.drug_pain_effect.delete(0, END)
+        self.app.drug_pain_effect.insert(0, "0.0")
+        self.app.drug_consciousness_effect.delete(0, END)
+        self.app.drug_consciousness_effect.insert(0, "0.0")
+        self.app.drug_moving_effect.delete(0, END)
+        self.app.drug_moving_effect.insert(0, "0.0")
+        self.app.drug_texture_label.config(text="No texture selected")
+        self.app.drug_sound_label.config(text="No sound selected")
+        self.app.selected_drug_texture = None
+        self.app.selected_drug_sound = None
+        
+        messagebox.showinfo("Success", f"Drug '{label}' added successfully!")
+    
+    def remove_drug(self):
+        """Remove selected drug"""
+        selection = self.app.drugs_listbox.curselection()
+        if not selection:
+            messagebox.showwarning("Warning", "Please select a drug to remove!")
+            return
+        
+        index = selection[0]
+        drug = self.app.drugs[index]
+        
+        if messagebox.askyesno("Confirm", f"Remove drug '{drug['label']}'?"):
+            del self.app.drugs[index]
+            self.app.drugs_listbox.delete(index)
+            messagebox.showinfo("Success", "Drug removed successfully!")
+    
+    def add_workbench(self):
+        """Add a new workbench to the mod"""
+        defname = self.app.workbench_defname.get().strip()
+        label = self.app.workbench_label.get().strip()
+        description = self.app.workbench_description.get().strip()
+        
+        if not defname or not label:
+            messagebox.showerror("Error", "DefName and Label are required!")
+            return
+        
+        # Check for duplicate defnames
+        for workbench in self.app.workbenches:
+            if workbench['defName'] == defname:
+                messagebox.showerror("Error", f"Workbench with DefName '{defname}' already exists!")
+                return
+        
+        try:
+            hitpoints = int(self.app.workbench_hitpoints.get() or "180")
+            work = int(self.app.workbench_work.get() or "3000")
+            speed_factor = float(self.app.workbench_speed_factor.get() or "1.0")
+            power = int(self.app.workbench_power.get() or "0")
+            skill_level = int(self.app.workbench_skill_level.get() or "0")
+        except ValueError:
+            messagebox.showerror("Error", "Please enter valid numbers for workbench properties!")
+            return
+        
+        workbench_type = self.app.workbench_type.get()
+        size = self.app.workbench_size.get() or "3,1"
+        skill = self.app.workbench_skill.get()
+        
+        workbench = {
+            'defName': defname,
+            'label': label,
+            'description': description,
+            'workbenchType': workbench_type,
+            'size': size,
+            'hitPoints': hitpoints,
+            'workToBuild': work,
+            'speedFactor': speed_factor,
+            'powerConsumption': power,
+            'requiredSkill': skill,
+            'requiredSkillLevel': skill_level,
+            'texture': getattr(self.app, 'selected_workbench_texture', None),
+            'sound': getattr(self.app, 'selected_workbench_sound', None)
+        }
+        
+        self.app.workbenches.append(workbench)
+        self.app.workbenches_listbox.insert(END, f"{defname} - {label}")
+        
+        # Clear form
+        self.app.workbench_defname.delete(0, END)
+        self.app.workbench_label.delete(0, END)
+        self.app.workbench_description.delete(0, END)
+        self.app.workbench_type.set("Crafting")
+        self.app.workbench_size.delete(0, END)
+        self.app.workbench_size.insert(0, "3,1")
+        self.app.workbench_hitpoints.delete(0, END)
+        self.app.workbench_hitpoints.insert(0, "180")
+        self.app.workbench_work.delete(0, END)
+        self.app.workbench_work.insert(0, "3000")
+        self.app.workbench_speed_factor.delete(0, END)
+        self.app.workbench_speed_factor.insert(0, "1.0")
+        self.app.workbench_power.delete(0, END)
+        self.app.workbench_power.insert(0, "0")
+        self.app.workbench_skill.set("Crafting")
+        self.app.workbench_skill_level.delete(0, END)
+        self.app.workbench_skill_level.insert(0, "0")
+        self.app.workbench_texture_label.config(text="No texture selected")
+        self.app.workbench_sound_label.config(text="No sound selected")
+        self.app.selected_workbench_texture = None
+        self.app.selected_workbench_sound = None
+        
+        messagebox.showinfo("Success", f"Workbench '{label}' added successfully!")
+    
+    def remove_workbench(self):
+        """Remove selected workbench"""
+        selection = self.app.workbenches_listbox.curselection()
+        if not selection:
+            messagebox.showwarning("Warning", "Please select a workbench to remove!")
+            return
+        
+        index = selection[0]
+        workbench = self.app.workbenches[index]
+        
+        if messagebox.askyesno("Confirm", f"Remove workbench '{workbench['label']}'?"):
+            del self.app.workbenches[index]
+            self.app.workbenches_listbox.delete(index)
+            messagebox.showinfo("Success", "Workbench removed successfully!")
+    
     def add_research(self):
         """Add a new research project to the mod"""
         defname = self.app.research_defname.get().strip()
@@ -353,11 +544,13 @@ class ContentManager:
         
         tech_level = self.app.research_tech_level.get()
         
-        # Get unlocked items, weapons, buildings, cosmetics
+        # Get unlocked items, weapons, buildings, cosmetics, drugs, workbenches
         unlocked_items = [self.app.research_unlocked_items.get(i) for i in self.app.research_unlocked_items.curselection()]
         unlocked_weapons = [self.app.research_unlocked_weapons.get(i) for i in self.app.research_unlocked_weapons.curselection()]
         unlocked_buildings = [self.app.research_unlocked_buildings.get(i) for i in self.app.research_unlocked_buildings.curselection()]
         unlocked_cosmetics = [self.app.research_unlocked_cosmetics.get(i) for i in self.app.research_unlocked_cosmetics.curselection()]
+        unlocked_drugs = [self.app.research_unlocked_drugs.get(i) for i in self.app.research_unlocked_drugs.curselection()]
+        unlocked_workbenches = [self.app.research_unlocked_workbenches.get(i) for i in self.app.research_unlocked_workbenches.curselection()]
         
         research = {
             'defName': defname,
@@ -368,7 +561,9 @@ class ContentManager:
             'unlockedItems': unlocked_items,
             'unlockedWeapons': unlocked_weapons,
             'unlockedBuildings': unlocked_buildings,
-            'unlockedCosmetics': unlocked_cosmetics
+            'unlockedCosmetics': unlocked_cosmetics,
+            'unlockedDrugs': unlocked_drugs,
+            'unlockedWorkbenches': unlocked_workbenches
         }
         
         self.app.research.append(research)
@@ -385,6 +580,8 @@ class ContentManager:
         self.app.research_unlocked_weapons.selection_clear(0, END)
         self.app.research_unlocked_buildings.selection_clear(0, END)
         self.app.research_unlocked_cosmetics.selection_clear(0, END)
+        self.app.research_unlocked_drugs.selection_clear(0, END)
+        self.app.research_unlocked_workbenches.selection_clear(0, END)
         
         messagebox.showinfo("Success", f"Research '{label}' added successfully!")
     
@@ -619,6 +816,80 @@ class ContentManager:
         selection = self.app.research_unlocked_cosmetics.curselection()
         if selection:
             self.app.research_unlocked_cosmetics.delete(selection[0])
+    
+    def add_drug_to_research(self):
+        """Add a drug to the research unlocks list"""
+        if not self.app.drugs:
+            messagebox.showwarning("Warning", "No drugs available! Create drugs first.")
+            return
+        
+        # Create selection dialog
+        selection_window = tk.Toplevel(self.app.root)
+        selection_window.title("Select Drug to Add")
+        selection_window.geometry("400x300")
+        
+        tk.Label(selection_window, text="Select a drug to add to research unlocks:", font=("Arial", 10, "bold")).pack(pady=10)
+        
+        listbox = tk.Listbox(selection_window, height=15)
+        listbox.pack(fill="both", expand=True, padx=20, pady=10)
+        
+        for drug in self.app.drugs:
+            listbox.insert(END, f"{drug['defName']} - {drug['label']}")
+        
+        def add_selected():
+            selection = listbox.curselection()
+            if selection:
+                drug_text = listbox.get(selection[0])
+                # Check if already in list
+                current_drugs = [self.app.research_unlocked_drugs.get(i) for i in range(self.app.research_unlocked_drugs.size())]
+                if drug_text not in current_drugs:
+                    self.app.research_unlocked_drugs.insert(END, drug_text)
+                selection_window.destroy()
+        
+        tk.Button(selection_window, text="Add Selected", command=add_selected, bg="#2196F3", fg="white").pack(pady=10)
+    
+    def remove_drug_from_research(self):
+        """Remove selected drug from research unlocks"""
+        selection = self.app.research_unlocked_drugs.curselection()
+        if selection:
+            self.app.research_unlocked_drugs.delete(selection[0])
+    
+    def add_workbench_to_research(self):
+        """Add a workbench to the research unlocks list"""
+        if not self.app.workbenches:
+            messagebox.showwarning("Warning", "No workbenches available! Create workbenches first.")
+            return
+        
+        # Create selection dialog
+        selection_window = tk.Toplevel(self.app.root)
+        selection_window.title("Select Workbench to Add")
+        selection_window.geometry("400x300")
+        
+        tk.Label(selection_window, text="Select a workbench to add to research unlocks:", font=("Arial", 10, "bold")).pack(pady=10)
+        
+        listbox = tk.Listbox(selection_window, height=15)
+        listbox.pack(fill="both", expand=True, padx=20, pady=10)
+        
+        for workbench in self.app.workbenches:
+            listbox.insert(END, f"{workbench['defName']} - {workbench['label']}")
+        
+        def add_selected():
+            selection = listbox.curselection()
+            if selection:
+                workbench_text = listbox.get(selection[0])
+                # Check if already in list
+                current_workbenches = [self.app.research_unlocked_workbenches.get(i) for i in range(self.app.research_unlocked_workbenches.size())]
+                if workbench_text not in current_workbenches:
+                    self.app.research_unlocked_workbenches.insert(END, workbench_text)
+                selection_window.destroy()
+        
+        tk.Button(selection_window, text="Add Selected", command=add_selected, bg="#2196F3", fg="white").pack(pady=10)
+    
+    def remove_workbench_from_research(self):
+        """Remove selected workbench from research unlocks"""
+        selection = self.app.research_unlocked_workbenches.curselection()
+        if selection:
+            self.app.research_unlocked_workbenches.delete(selection[0])
 
 
 class AssetManager:
@@ -704,6 +975,46 @@ class AssetManager:
         if filename:
             self.app.selected_cosmetic_sound = filename
             self.app.cosmetic_sound_label.config(text=os.path.basename(filename))
+    
+    def select_drug_texture(self):
+        """Select texture file for drug"""
+        filename = filedialog.askopenfilename(
+            title="Select Drug Texture",
+            filetypes=[("PNG files", "*.png"), ("All files", "*.*")]
+        )
+        if filename:
+            self.app.selected_drug_texture = filename
+            self.app.drug_texture_label.config(text=os.path.basename(filename))
+    
+    def select_drug_sound(self):
+        """Select sound file for drug"""
+        filename = filedialog.askopenfilename(
+            title="Select Drug Sound",
+            filetypes=[("Audio files", "*.wav *.ogg"), ("All files", "*.*")]
+        )
+        if filename:
+            self.app.selected_drug_sound = filename
+            self.app.drug_sound_label.config(text=os.path.basename(filename))
+    
+    def select_workbench_texture(self):
+        """Select texture file for workbench"""
+        filename = filedialog.askopenfilename(
+            title="Select Workbench Texture",
+            filetypes=[("PNG files", "*.png"), ("All files", "*.*")]
+        )
+        if filename:
+            self.app.selected_workbench_texture = filename
+            self.app.workbench_texture_label.config(text=os.path.basename(filename))
+    
+    def select_workbench_sound(self):
+        """Select sound file for workbench"""
+        filename = filedialog.askopenfilename(
+            title="Select Workbench Sound",
+            filetypes=[("Audio files", "*.wav *.ogg"), ("All files", "*.*")]
+        )
+        if filename:
+            self.app.selected_workbench_sound = filename
+            self.app.workbench_sound_label.config(text=os.path.basename(filename))
     
     def copy_assets(self, mod_folder):
         """Copy selected asset files to the mod folder"""
@@ -791,5 +1102,43 @@ class AssetManager:
                     copied_assets.append(f"Cosmetic sound: {cosmetic['defName']}{ext}")
                 except Exception as e:
                     print(f"Error copying cosmetic sound: {e}")
+        
+        # Copy drug assets
+        for drug in self.app.drugs:
+            if drug.get('texture'):
+                try:
+                    dest_path = os.path.join(textures_dir, f"{drug['defName']}.png")
+                    shutil.copy2(drug['texture'], dest_path)
+                    copied_assets.append(f"Drug texture: {drug['defName']}.png")
+                except Exception as e:
+                    print(f"Error copying drug texture: {e}")
+            
+            if drug.get('sound'):
+                try:
+                    ext = os.path.splitext(drug['sound'])[1]
+                    dest_path = os.path.join(sounds_dir, f"{drug['defName']}{ext}")
+                    shutil.copy2(drug['sound'], dest_path)
+                    copied_assets.append(f"Drug sound: {drug['defName']}{ext}")
+                except Exception as e:
+                    print(f"Error copying drug sound: {e}")
+        
+        # Copy workbench assets
+        for workbench in self.app.workbenches:
+            if workbench.get('texture'):
+                try:
+                    dest_path = os.path.join(textures_dir, f"{workbench['defName']}.png")
+                    shutil.copy2(workbench['texture'], dest_path)
+                    copied_assets.append(f"Workbench texture: {workbench['defName']}.png")
+                except Exception as e:
+                    print(f"Error copying workbench texture: {e}")
+            
+            if workbench.get('sound'):
+                try:
+                    ext = os.path.splitext(workbench['sound'])[1]
+                    dest_path = os.path.join(sounds_dir, f"{workbench['defName']}{ext}")
+                    shutil.copy2(workbench['sound'], dest_path)
+                    copied_assets.append(f"Workbench sound: {workbench['defName']}{ext}")
+                except Exception as e:
+                    print(f"Error copying workbench sound: {e}")
         
         return copied_assets
